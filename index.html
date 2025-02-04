@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life Quiz Game</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #000428, #004e92);
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .title {
+            font-size: 40px;
+            font-weight: bold;
+            color: #8B4513; /* Brown color */
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.8);
+            font-family: 'Georgia', serif;
+        }
+
+        .quiz-container {
+            background: #0a0a0a;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.9);
+            width: 400px;
+            text-align: center;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .quiz-container:hover {
+            transform: scale(1.02);
+        }
+
+        .question {
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .option, .start-btn, .retry-btn, .next-btn {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            border: none;
+            padding: 14px;
+            margin: 10px 0;
+            width: 100%;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .option:hover, .start-btn:hover, .retry-btn:hover, .next-btn:hover {
+            background: linear-gradient(135deg, #1c1c1c, #292929);
+            transform: scale(1.05);
+        }
+
+        .quote {
+            font-style: italic;
+            margin-top: 20px;
+            color: #8B4513;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .correct {
+            background-color: #4caf50 !important;
+        }
+
+        .incorrect {
+            background-color: #f44336 !important;
+        }
+
+        .score {
+            font-size: 20px;
+            margin: 20px 0;
+            color: #76ff03;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">The Ultimate Life Quiz</div>
+
+    <div class="quiz-container">
+        <button class="start-btn" onclick="startQuiz()">Start Quiz</button>
+
+        <div id="quiz-content" class="hidden">
+            <div class="question" id="question">Loading question...</div>
+            <button class="option" onclick="checkAnswer(0)">Option 1</button>
+            <button class="option" onclick="checkAnswer(1)">Option 2</button>
+            <button class="option" onclick="checkAnswer(2)">Option 3</button>
+            <button class="option" onclick="checkAnswer(3)">Option 4</button>
+            <div class="quote" id="quote"></div>
+            <div class="score hidden" id="score"></div>
+            <button class="next-btn hidden" onclick="loadNextQuestion()">Next</button>
+            <button class="retry-btn hidden" onclick="retryQuiz()">Try Again</button>
+        </div>
+    </div>
+
+    <script>
+        const quiz = [
+            { question: "What is the true meaning of life?", options: ["Happiness", "Success", "Growth", "Comfort"], correct: 2, quote: "\"The purpose of life is not to be happy. It is to be useful, to be honorable, to be compassionate.\" - Ralph Waldo Emerson" },
+            { question: "Which is more important: the journey or the destination?", options: ["Journey", "Destination", "Both", "Neither"], correct: 0, quote: "\"Focus on the journey, not the destination. Joy is found not in finishing an activity but in doing it.\" - Greg Anderson" },
+            { question: "What makes a person truly rich?", options: ["Money", "Relationships", "Power", "Fame"], correct: 1, quote: "\"It is not how much we have, but how much we enjoy, that makes happiness.\" - Charles Spurgeon" },
+            { question: "What is the greatest lesson life teaches us?", options: ["Perfection", "Patience", "Ambition", "Control"], correct: 1, quote: "\"Adopt the pace of nature: her secret is patience.\" - Ralph Waldo Emerson" },
+            { question: "What is the key to lasting happiness?", options: ["Gratitude", "Wealth", "Recognition", "Perfection"], correct: 0, quote: "\"Gratitude turns what we have into enough.\" - Aesop" },
+            { question: "How do we find meaning in life?", options: ["Avoiding mistakes", "Seeking approval", "Helping others", "Pursuing fame"], correct: 2, quote: "\"The best way to find yourself is to lose yourself in the service of others.\" - Mahatma Gandhi" },
+            { question: "What defines true strength?", options: ["Physical power", "Wealth", "Resilience", "Control over others"], correct: 2, quote: "\"Strength does not come from physical capacity. It comes from an indomitable will.\" - Mahatma Gandhi" },
+            { question: "What is the essence of wisdom?", options: ["Knowledge", "Experience", "Simplicity", "Understanding"], correct: 3, quote: "\"Knowing others is intelligence; knowing yourself is true wisdom.\" - Lao Tzu" }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let buttons;
+
+        function startQuiz() {
+            document.querySelector('.start-btn').classList.add('hidden');
+            document.getElementById('quiz-content').classList.remove('hidden');
+            buttons = document.querySelectorAll('.option');
+            score = 0;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = quiz[currentQuestion];
+            document.getElementById('question').innerText = q.question;
+            buttons.forEach((btn, index) => {
+                btn.innerText = q.options[index];
+                btn.classList.remove('hidden', 'correct', 'incorrect');
+                btn.disabled = false;
+            });
+            document.getElementById('quote').innerText = "";
+            document.getElementById('score').classList.add('hidden');
+            document.querySelector('.retry-btn').classList.add('hidden');
+            document.querySelector('.next-btn').classList.add('hidden');
+        }
+
+        function checkAnswer(selected) {
+            const q = quiz[currentQuestion];
+            buttons.forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === q.correct) {
+                    btn.classList.add('correct');
+                } else if (index === selected) {
+                    btn.classList.add('incorrect');
+                }
+            });
+
+            if (selected === q.correct) score++;
+
+            document.getElementById('quote').innerText = q.quote;
+
+            if (currentQuestion < quiz.length - 1) {
+                document.querySelector('.next-btn').classList.remove('hidden');
+            } else {
+                setTimeout(() => {
+                    showFinalScore();
+                }, 2000);
+            }
+        }
+
+        function loadNextQuestion() {
+            currentQuestion++;
+            loadQuestion();
+        }
+
+        function showFinalScore() {
+            buttons.forEach(btn => btn.classList.add('hidden'));
+            document.querySelector('.retry-btn').classList.remove('hidden');
+            document.getElementById('question').innerText = "Quiz Completed!";
+            document.getElementById('score').innerText = `Your Score: ${score} / ${quiz.length}`;
+            document.getElementById('score').classList.remove('hidden');
+        }
+
+        function retryQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            loadQuestion();
+        }
+    </script>
+</body>
+</html>
